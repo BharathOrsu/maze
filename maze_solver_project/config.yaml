@@ -1,0 +1,9 @@
+maze_settings:
+  maze_width: 20
+  maze_height: 20
+  start_position: (0, 0)
+  end_position: (19, 19)
+
+solver_settings:
+  algorithm: "bfs"
+  delay: 0.1
