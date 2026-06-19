@@ -1,0 +1,9 @@
+renders/
+media/
+__pycache__/
+*.pyc
+.env
+render_history.json
+manim-studio.zip
+maze_solver_project/
+manim_ide/
