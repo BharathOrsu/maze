@@ -1,0 +1,4 @@
+manim
+flask
+flask-cors
+docker

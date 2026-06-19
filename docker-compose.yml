@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  manim-ide:
+    build: .
+    container_name: manim-studio
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./renders:/app/renders
+      - ./render_history.json:/app/render_history.json
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2'

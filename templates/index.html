@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manim Studio — Animation IDE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Ambient Background -->
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 32 32" width="28" height="28">
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#a78bfa"/>
+                                <stop offset="100%" style="stop-color:#6366f1"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="16" cy="16" r="14" fill="url(#logoGrad)" opacity="0.15"/>
+                        <polygon points="13,9 13,23 25,16" fill="url(#logoGrad)"/>
+                    </svg>
+                </div>
+                <span class="logo-text">Manim <span class="logo-accent">Studio</span></span>
+            </div>
+            <nav class="topbar-nav">
+                <button class="nav-btn active" data-view="editor" onclick="switchView('editor')">
+                    <i class="fas fa-code"></i> Editor
+                </button>
+                <button class="nav-btn" data-view="examples" onclick="switchView('examples')">
+                    <i class="fas fa-lightbulb"></i> Examples
+                </button>
+                <button class="nav-btn" data-view="history" onclick="switchView('history')">
+                    <i class="fas fa-history"></i> History
+                </button>
+            </nav>
+        </div>
+        <div class="topbar-right">
+            <!-- Syntax Status Indicator -->
+            <div class="syntax-indicator" id="syntax-indicator" title="Syntax check status">
+                <i class="fas fa-check-circle"></i>
+                <span>OK</span>
+            </div>
+
+            <div class="quality-selector">
+                <label>Quality</label>
+                <select id="quality-select">
+                    <option value="low">Low (150p)</option>
+                    <option value="medium" selected>Medium (480p)</option>
+                    <option value="high">High (1080p)</option>
+                    <option value="4k">4K (2160p)</option>
+                </select>
+            </div>
+            <button class="render-btn" id="render-btn" onclick="renderCode()">
+                <i class="fas fa-play"></i>
+                <span>Render</span>
+                <div class="btn-glow"></div>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Editor View -->
+        <div class="view-panel active" id="editor-view">
+            <div class="panel editor-panel">
+                <div class="panel-header">
+                    <div class="panel-tabs">
+                        <span class="panel-tab active">
+                            <i class="fas fa-file-code"></i> scene.py
+                        </span>
+                    </div>
+                    <div class="panel-actions">
+                        <button class="icon-btn" onclick="formatCode()" title="Format Code">
+                            <i class="fas fa-indent"></i>
+                        </button>
+                        <button class="icon-btn" onclick="clearEditor()" title="Clear">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="editor" class="editor-container"></div>
+                <!-- Syntax Validation Bar -->
+                <div class="syntax-bar" id="syntax-bar">
+                    <div class="syntax-bar-left">
+                        <span class="syntax-status" id="syntax-status">
+                            <i class="fas fa-check-circle"></i> No issues
+                        </span>
+                    </div>
+                    <div class="syntax-bar-right">
+                        <span class="docker-status" id="docker-status">
+                            <i class="fas fa-docker"></i>
+                        </span>
+                        <span class="render-mode" id="render-mode">Local</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel output-panel">
+                <div class="panel-header">
+                    <div class="panel-tabs">
+                        <span class="panel-tab active">
+                            <i class="fas fa-film"></i> Output
+                        </span>
+                    </div>
+                    <div class="panel-actions" id="output-actions" style="display:none;">
+                        <button class="icon-btn" id="download-btn" onclick="downloadVideo()" title="Download MP4">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="output-container" id="output-container">
+                    <!-- Empty State -->
+                    <div class="empty-state" id="empty-state">
+                        <div class="empty-icon">
+                            <svg viewBox="0 0 120 120" width="80" height="80">
+                                <defs>
+                                    <linearGradient id="emptyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:0.3"/>
+                                        <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0.3"/>
+                                    </linearGradient>
+                                </defs>
+                                <circle cx="60" cy="60" r="50" fill="url(#emptyGrad)"/>
+                                <polygon points="50,35 50,85 85,60" fill="#a78bfa" opacity="0.6"/>
+                            </svg>
+                        </div>
+                        <p class="empty-title">Ready to create</p>
+                        <p class="empty-subtitle">Write your Manim code and hit <kbd>Render</kbd> to see it come alive</p>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div class="loading-state" id="loading-state" style="display:none;">
+                        <div class="loader">
+                            <div class="loader-ring"></div>
+                            <div class="loader-ring"></div>
+                            <div class="loader-ring"></div>
+                        </div>
+                        <p class="loading-text">Rendering animation...</p>
+                        <p class="loading-subtext" id="loading-subtext">This may take a moment</p>
+                    </div>
+
+                    <!-- Error State -->
+                    <div class="error-state" id="error-state" style="display:none;">
+                        <div class="error-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <p class="error-title">Render failed</p>
+                        <pre class="error-message" id="error-message"></pre>
+                        <button class="retry-btn" onclick="clearOutput()">
+                            <i class="fas fa-redo"></i> Try again
+                        </button>
+                    </div>
+
+                    <!-- Video Player -->
+                    <div class="video-container" id="video-container" style="display:none;">
+                        <video id="video-player" controls></video>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Examples View -->
+        <div class="view-panel" id="examples-view" style="display:none;">
+            <div class="examples-grid" id="examples-grid">
+                <p class="examples-loading">Loading examples...</p>
+            </div>
+        </div>
+
+        <!-- History View -->
+        <div class="view-panel" id="history-view" style="display:none;">
+            <div class="history-container">
+                <div class="history-header">
+                    <h2><i class="fas fa-history"></i> Render History</h2>
+                    <button class="clear-history-btn" onclick="clearAllHistory()">
+                        <i class="fas fa-trash-alt"></i> Clear All
+                    </button>
+                </div>
+                <div class="history-list" id="history-list">
+                    <p class="history-empty">No renders yet. Start creating!</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Status Bar -->
+    <footer class="statusbar">
+        <div class="status-left">
+            <span class="status-item">
+                <i class="fas fa-circle status-dot"></i> <span id="status-text">Ready</span>
+            </span>
+        </div>
+        <div class="status-right">
+            <span class="status-item" id="status-info">Python 3 · Manim CE</span>
+        </div>
+    </footer>
+
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+</body>
+</html>
